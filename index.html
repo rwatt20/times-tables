@@ -1,1 +1,209 @@
-<html><head></head><body style="overflow-wrap: break-word; -webkit-nbsp-mode: space; line-break: after-white-space;"><div>&lt;!doctype html&gt;</div><div>&lt;html lang="en"&gt;</div><div>&lt;head&gt;</div><div>&nbsp; &lt;meta charset="utf-8" /&gt;</div><div>&nbsp; &lt;meta name="viewport" content="width=device-width, initial-scale=1" /&gt;</div><div>&nbsp; &lt;title&gt;Times Tables Trainer&lt;/title&gt;</div><div>&nbsp; &lt;link rel="stylesheet" href="styles.css" /&gt;</div><div>&lt;/head&gt;</div><div>&lt;body&gt;</div><div>&nbsp; &lt;main class="card"&gt;</div><div>&nbsp; &nbsp; &lt;header class="top"&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;h1&gt;Times Tables Trainer&lt;/h1&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;div class="top-actions"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="teacherBtn" class="btn"&gt;Parent/Teacher&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div>&nbsp; &nbsp; &lt;/header&gt;</div><div><br></div><div>&nbsp; &nbsp; &lt;!-- SETUP --&gt;</div><div>&nbsp; &nbsp; &lt;section id="setup" class="section"&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;div class="grid2"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Kid name (optional)</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="kidName" type="text" placeholder="e.g., Sam" maxlength="24" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Level</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;select id="level"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="1"&gt;Level 1 (easy)&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="2"&gt;Level 2&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="3"&gt;Level 3&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="4" selected&gt;Level 4&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="5"&gt;Level 5 (hard)&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/select&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="grid2"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Mode</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;select id="mode"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="mixed" selected&gt;Mixed practice&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="focus"&gt;Focus on ONE table&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="missed"&gt;Wrong answers only (review)&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/select&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Questions</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="numQuestions" type="number" min="5" max="100" value="20" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="grid2"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label id="focusWrap" class="hidden"&gt;Focus table (e.g., 7)</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="focusTable" type="number" min="1" max="12" value="7" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div class="row"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label class="switch"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="timed" type="checkbox"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;span&gt;Timed&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label class="switch"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="sounds" type="checkbox" checked&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;span&gt;Sounds&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label class="switch"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="bigUI" type="checkbox" checked&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;span&gt;Big buttons&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;details class="details"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;summary&gt;Table range (optional)&lt;/summary&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;p class="muted"&gt;For Mixed practice. Ignored in Focus and Review modes.&lt;/p&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div class="row"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;From</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="minTable" type="number" min="1" max="12" value="2" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;To</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="maxTable" type="number" min="1" max="12" value="12" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/details&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;button id="startBtn" class="btn primary wide"&gt;Start&lt;/button&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;p class="muted small"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; Tip: Press &lt;kbd&gt;Enter&lt;/kbd&gt; to submit. On tablets, use the big keypad.</div><div>&nbsp; &nbsp; &nbsp; &lt;/p&gt;</div><div>&nbsp; &nbsp; &lt;/section&gt;</div><div><br></div><div>&nbsp; &nbsp; &lt;!-- GAME --&gt;</div><div>&nbsp; &nbsp; &lt;section id="game" class="section hidden" aria-live="polite"&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;div class="stats"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Score:&lt;/strong&gt; &lt;span id="score"&gt;0&lt;/span&gt;&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Streak:&lt;/strong&gt; &lt;span id="streak"&gt;0&lt;/span&gt;&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Progress:&lt;/strong&gt; &lt;span id="progress"&gt;0/0&lt;/span&gt;&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div id="timerBox" class="hidden"&gt;&lt;strong&gt;Time:&lt;/strong&gt; &lt;span id="timeLeft"&gt;60&lt;/span&gt;s&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Stars:&lt;/strong&gt; &lt;span id="stars"&gt;0&lt;/span&gt; ⭐&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Badge:&lt;/strong&gt; &lt;span id="badge"&gt;—&lt;/span&gt;&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="question"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;span id="a"&gt;?&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;span class="mul"&gt;×&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;span id="b"&gt;?&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;span class="eq"&gt;=&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="answer" inputmode="numeric" autocomplete="off" placeholder="?" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="submitBtn" class="btn primary"&gt;OK&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;p id="feedback" class="feedback"&gt;&lt;/p&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="keypad" id="keypad"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="7"&gt;7&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="8"&gt;8&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="9"&gt;9&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="4"&gt;4&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="5"&gt;5&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="6"&gt;6&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="1"&gt;1&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="2"&gt;2&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="3"&gt;3&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="0"&gt;0&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="bk"&gt;⌫&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn primary" data-k="ok"&gt;Enter&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="row space"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="quitBtn" class="btn danger"&gt;Quit&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div>&nbsp; &nbsp; &lt;/section&gt;</div><div><br></div><div>&nbsp; &nbsp; &lt;!-- RESULTS --&gt;</div><div>&nbsp; &nbsp; &lt;section id="results" class="section hidden"&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;h2&gt;Results&lt;/h2&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;p&gt;&lt;strong&gt;Final score:&lt;/strong&gt; &lt;span id="finalScore"&gt;0&lt;/span&gt;&lt;/p&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;p&gt;&lt;strong&gt;Accuracy:&lt;/strong&gt; &lt;span id="accuracy"&gt;0&lt;/span&gt;%&lt;/p&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;p&gt;&lt;strong&gt;Stars earned:&lt;/strong&gt; &lt;span id="finalStars"&gt;0&lt;/span&gt; ⭐&lt;/p&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;p&gt;&lt;strong&gt;Badge:&lt;/strong&gt; &lt;span id="finalBadge"&gt;—&lt;/span&gt;&lt;/p&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div id="missedBox" class="hidden"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;h3&gt;Missed questions&lt;/h3&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;ul id="missedList"&gt;&lt;/ul&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="reviewMissedBtn" class="btn"&gt;Practice missed only&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;button id="restartBtn" class="btn primary wide"&gt;Practice Again&lt;/button&gt;</div><div>&nbsp; &nbsp; &lt;/section&gt;</div><div><br></div><div>&nbsp; &nbsp; &lt;!-- TEACHER / PARENT --&gt;</div><div>&nbsp; &nbsp; &lt;section id="teacher" class="section hidden"&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;h2&gt;Parent/Teacher Dashboard&lt;/h2&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="row space"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="backBtn" class="btn"&gt;Back&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="clearHistoryBtn" class="btn danger"&gt;Clear history&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="grid2"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Filter by name</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="filterName" type="text" placeholder="(leave blank for all)" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Show last</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;select id="filterCount"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="10"&gt;10 sessions&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="25" selected&gt;25 sessions&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="50"&gt;50 sessions&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="9999"&gt;All&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/select&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div id="summary" class="summary"&gt;&lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="tableWrap"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;table id="historyTable"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;thead&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;tr&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Date&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Name&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Mode&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Level&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Timed&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Score&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Accuracy&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Stars&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Badge&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/tr&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/thead&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;tbody&gt;&lt;/tbody&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/table&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;h3&gt;Most missed facts (top 12)&lt;/h3&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;ol id="topMissed"&gt;&lt;/ol&gt;</div><div>&nbsp; &nbsp; &lt;/section&gt;</div><div><br></div><div>&nbsp; &nbsp; &lt;footer class="footer"&gt;</div><div>&nbsp; &nbsp; &nbsp; Made for quick practice: simple, fast feedback, and easy review.</div><div>&nbsp; &nbsp; &lt;/footer&gt;</div><div>&nbsp; &lt;/main&gt;</div><div><br></div><div>&nbsp; &lt;script src="app.js"&gt;&lt;/script&gt;</div><div>&lt;/body&gt;</div><div>&lt;/html&gt;</div><div><br></div></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Times Tables Trainer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="card">
+    <header class="top">
+      <h1>Times Tables Trainer</h1>
+      <div class="top-actions">
+        <button id="teacherBtn" class="btn">Parent/Teacher</button>
+      </div>
+    </header>
+
+    <!-- SETUP -->
+    <section id="setup" class="section">
+      <div class="grid2">
+        <label>Kid name (optional)
+          <input id="kidName" type="text" placeholder="e.g., Sam" maxlength="24" />
+        </label>
+
+        <label>Level
+          <select id="level">
+            <option value="1">Level 1 (easy)</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4" selected>Level 4</option>
+            <option value="5">Level 5 (hard)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="grid2">
+        <label>Mode
+          <select id="mode">
+            <option value="mixed" selected>Mixed practice</option>
+            <option value="focus">Focus on ONE table</option>
+            <option value="missed">Wrong answers only (review)</option>
+          </select>
+        </label>
+
+        <label>Questions
+          <input id="numQuestions" type="number" min="5" max="100" value="20" />
+        </label>
+      </div>
+
+      <div class="grid2">
+        <label id="focusWrap" class="hidden">Focus table (e.g., 7)
+          <input id="focusTable" type="number" min="1" max="12" value="7" />
+        </label>
+
+        <div class="row">
+          <label class="switch">
+            <input id="timed" type="checkbox">
+            <span>Timed</span>
+          </label>
+
+          <label class="switch">
+            <input id="sounds" type="checkbox" checked>
+            <span>Sounds</span>
+          </label>
+
+          <label class="switch">
+            <input id="bigUI" type="checkbox" checked>
+            <span>Big buttons</span>
+          </label>
+        </div>
+      </div>
+
+      <details class="details">
+        <summary>Table range (optional)</summary>
+        <p class="muted">For Mixed practice. Ignored in Focus and Review modes.</p>
+        <div class="row">
+          <label>From
+            <input id="minTable" type="number" min="1" max="12" value="2" />
+          </label>
+          <label>To
+            <input id="maxTable" type="number" min="1" max="12" value="12" />
+          </label>
+        </div>
+      </details>
+
+      <button id="startBtn" class="btn primary wide">Start</button>
+
+      <p class="muted small">
+        Tip: Press <kbd>Enter</kbd> to submit. On tablets, use the big keypad.
+      </p>
+    </section>
+
+    <!-- GAME -->
+    <section id="game" class="section hidden" aria-live="polite">
+      <div class="stats">
+        <div><strong>Score:</strong> <span id="score">0</span></div>
+        <div><strong>Streak:</strong> <span id="streak">0</span></div>
+        <div><strong>Progress:</strong> <span id="progress">0/0</span></div>
+        <div id="timerBox" class="hidden"><strong>Time:</strong> <span id="timeLeft">60</span>s</div>
+        <div><strong>Stars:</strong> <span id="stars">0</span> ⭐</div>
+        <div><strong>Badge:</strong> <span id="badge">—</span></div>
+      </div>
+
+      <div class="question">
+        <span id="a">?</span>
+        <span class="mul">×</span>
+        <span id="b">?</span>
+        <span class="eq">=</span>
+        <input id="answer" inputmode="numeric" autocomplete="off" placeholder="?" />
+        <button id="submitBtn" class="btn primary">OK</button>
+      </div>
+
+      <p id="feedback" class="feedback"></p>
+
+      <div class="keypad" id="keypad">
+        <button class="kbtn" data-k="7">7</button>
+        <button class="kbtn" data-k="8">8</button>
+        <button class="kbtn" data-k="9">9</button>
+        <button class="kbtn" data-k="4">4</button>
+        <button class="kbtn" data-k="5">5</button>
+        <button class="kbtn" data-k="6">6</button>
+        <button class="kbtn" data-k="1">1</button>
+        <button class="kbtn" data-k="2">2</button>
+        <button class="kbtn" data-k="3">3</button>
+        <button class="kbtn" data-k="0">0</button>
+        <button class="kbtn" data-k="bk">⌫</button>
+        <button class="kbtn primary" data-k="ok">Enter</button>
+      </div>
+
+      <div class="row space">
+        <button id="quitBtn" class="btn danger">Quit</button>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="results" class="section hidden">
+      <h2>Results</h2>
+      <p><strong>Final score:</strong> <span id="finalScore">0</span></p>
+      <p><strong>Accuracy:</strong> <span id="accuracy">0</span>%</p>
+      <p><strong>Stars earned:</strong> <span id="finalStars">0</span> ⭐</p>
+      <p><strong>Badge:</strong> <span id="finalBadge">—</span></p>
+
+      <div id="missedBox" class="hidden">
+        <h3>Missed questions</h3>
+        <ul id="missedList"></ul>
+        <button id="reviewMissedBtn" class="btn">Practice missed only</button>
+      </div>
+
+      <button id="restartBtn" class="btn primary wide">Practice Again</button>
+    </section>
+
+    <!-- TEACHER / PARENT -->
+    <section id="teacher" class="section hidden">
+      <h2>Parent/Teacher Dashboard</h2>
+
+      <div class="row space">
+        <button id="backBtn" class="btn">Back</button>
+        <button id="clearHistoryBtn" class="btn danger">Clear history</button>
+      </div>
+
+      <div class="grid2">
+        <label>Filter by name
+          <input id="filterName" type="text" placeholder="(leave blank for all)" />
+        </label>
+
+        <label>Show last
+          <select id="filterCount">
+            <option value="10">10 sessions</option>
+            <option value="25" selected>25 sessions</option>
+            <option value="50">50 sessions</option>
+            <option value="9999">All</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="summary" class="summary"></div>
+
+      <div class="tableWrap">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Name</th>
+              <th>Mode</th>
+              <th>Level</th>
+              <th>Timed</th>
+              <th>Score</th>
+              <th>Accuracy</th>
+              <th>Stars</th>
+              <th>Badge</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3>Most missed facts (top 12)</h3>
+      <ol id="topMissed"></ol>
+    </section>
+
+    <footer class="footer">
+      Made for quick practice: simple, fast feedback, and easy review.
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
+ct&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="grid2"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Mode</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;select id="mode"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="mixed" selected&gt;Mixed practice&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="focus"&gt;Focus on ONE table&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="missed"&gt;Wrong answers only (review)&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/select&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Questions</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="numQuestions" type="number" min="5" max="100" value="20" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="grid2"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label id="focusWrap" class="hidden"&gt;Focus table (e.g., 7)</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="focusTable" type="number" min="1" max="12" value="7" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div class="row"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label class="switch"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="timed" type="checkbox"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;span&gt;Timed&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label class="switch"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="sounds" type="checkbox" checked&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;span&gt;Sounds&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label class="switch"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="bigUI" type="checkbox" checked&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;span&gt;Big buttons&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;details class="details"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;summary&gt;Table range (optional)&lt;/summary&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;p class="muted"&gt;For Mixed practice. Ignored in Focus and Review modes.&lt;/p&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div class="row"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;From</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="minTable" type="number" min="1" max="12" value="2" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;To</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="maxTable" type="number" min="1" max="12" value="12" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/details&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;button id="startBtn" class="btn primary wide"&gt;Start&lt;/button&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;p class="muted small"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; Tip: Press &lt;kbd&gt;Enter&lt;/kbd&gt; to submit. On tablets, use the big keypad.</div><div>&nbsp; &nbsp; &nbsp; &lt;/p&gt;</div><div>&nbsp; &nbsp; &lt;/section&gt;</div><div><br></div><div>&nbsp; &nbsp; &lt;!-- GAME --&gt;</div><div>&nbsp; &nbsp; &lt;section id="game" class="section hidden" aria-live="polite"&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;div class="stats"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Score:&lt;/strong&gt; &lt;span id="score"&gt;0&lt;/span&gt;&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Streak:&lt;/strong&gt; &lt;span id="streak"&gt;0&lt;/span&gt;&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Progress:&lt;/strong&gt; &lt;span id="progress"&gt;0/0&lt;/span&gt;&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div id="timerBox" class="hidden"&gt;&lt;strong&gt;Time:&lt;/strong&gt; &lt;span id="timeLeft"&gt;60&lt;/span&gt;s&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Stars:&lt;/strong&gt; &lt;span id="stars"&gt;0&lt;/span&gt; ⭐&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;&lt;strong&gt;Badge:&lt;/strong&gt; &lt;span id="badge"&gt;—&lt;/span&gt;&lt;/div&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="question"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;span id="a"&gt;?&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;span class="mul"&gt;×&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;span id="b"&gt;?&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;span class="eq"&gt;=&lt;/span&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="answer" inputmode="numeric" autocomplete="off" placeholder="?" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="submitBtn" class="btn primary"&gt;OK&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;p id="feedback" class="feedback"&gt;&lt;/p&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="keypad" id="keypad"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="7"&gt;7&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="8"&gt;8&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="9"&gt;9&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="4"&gt;4&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="5"&gt;5&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="6"&gt;6&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="1"&gt;1&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="2"&gt;2&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="3"&gt;3&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="0"&gt;0&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn" data-k="bk"&gt;⌫&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button class="kbtn primary" data-k="ok"&gt;Enter&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="row space"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="quitBtn" class="btn danger"&gt;Quit&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div>&nbsp; &nbsp; &lt;/section&gt;</div><div><br></div><div>&nbsp; &nbsp; &lt;!-- RESULTS --&gt;</div><div>&nbsp; &nbsp; &lt;section id="results" class="section hidden"&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;h2&gt;Results&lt;/h2&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;p&gt;&lt;strong&gt;Final score:&lt;/strong&gt; &lt;span id="finalScore"&gt;0&lt;/span&gt;&lt;/p&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;p&gt;&lt;strong&gt;Accuracy:&lt;/strong&gt; &lt;span id="accuracy"&gt;0&lt;/span&gt;%&lt;/p&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;p&gt;&lt;strong&gt;Stars earned:&lt;/strong&gt; &lt;span id="finalStars"&gt;0&lt;/span&gt; ⭐&lt;/p&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;p&gt;&lt;strong&gt;Badge:&lt;/strong&gt; &lt;span id="finalBadge"&gt;—&lt;/span&gt;&lt;/p&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div id="missedBox" class="hidden"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;h3&gt;Missed questions&lt;/h3&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;ul id="missedList"&gt;&lt;/ul&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="reviewMissedBtn" class="btn"&gt;Practice missed only&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;button id="restartBtn" class="btn primary wide"&gt;Practice Again&lt;/button&gt;</div><div>&nbsp; &nbsp; &lt;/section&gt;</div><div><br></div><div>&nbsp; &nbsp; &lt;!-- TEACHER / PARENT --&gt;</div><div>&nbsp; &nbsp; &lt;section id="teacher" class="section hidden"&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;h2&gt;Parent/Teacher Dashboard&lt;/h2&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="row space"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="backBtn" class="btn"&gt;Back&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;button id="clearHistoryBtn" class="btn danger"&gt;Clear history&lt;/button&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="grid2"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Filter by name</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;input id="filterName" type="text" placeholder="(leave blank for all)" /&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;label&gt;Show last</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;select id="filterCount"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="10"&gt;10 sessions&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="25" selected&gt;25 sessions&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="50"&gt;50 sessions&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;option value="9999"&gt;All&lt;/option&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/select&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/label&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div id="summary" class="summary"&gt;&lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;div class="tableWrap"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;table id="historyTable"&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;thead&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;tr&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Date&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Name&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Mode&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Level&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Timed&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Score&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Accuracy&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Stars&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;th&gt;Badge&lt;/th&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/tr&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/thead&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;tbody&gt;&lt;/tbody&gt;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &lt;/table&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;/div&gt;</div><div><br></div><div>&nbsp; &nbsp; &nbsp; &lt;h3&gt;Most missed facts (top 12)&lt;/h3&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;ol id="topMissed"&gt;&lt;/ol&gt;</div><div>&nbsp; &nbsp; &lt;/section&gt;</div><div><br></div><div>&nbsp; &nbsp; &lt;footer class="footer"&gt;</div><div>&nbsp; &nbsp; &nbsp; Made for quick practice: simple, fast feedback, and easy review.</div><div>&nbsp; &nbsp; &lt;/footer&gt;</div><div>&nbsp; &lt;/main&gt;</div><div><br></div><div>&nbsp; &lt;script src="app.js"&gt;&lt;/script&gt;</div><div>&lt;/body&gt;</div><div>&lt;/html&gt;</div><div><br></div></body></html>
