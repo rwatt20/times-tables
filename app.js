@@ -1,1 +1,625 @@
-<html><head></head><body style="overflow-wrap: break-word; -webkit-nbsp-mode: space; line-break: after-white-space;"><div>const $ = (id) =&gt; document.getElementById(id);</div><div><br></div><div>// Sections</div><div>const setupEl = $("setup");</div><div>const gameEl = $("game");</div><div>const resultsEl = $("results");</div><div>const teacherEl = $("teacher");</div><div><br></div><div>// Inputs</div><div>const kidNameEl = $("kidName");</div><div>const levelEl = $("level");</div><div>const modeEl = $("mode");</div><div>const numQuestionsEl = $("numQuestions");</div><div>const focusTableEl = $("focusTable");</div><div>const focusWrapEl = $("focusWrap");</div><div>const minTableEl = $("minTable");</div><div>const maxTableEl = $("maxTable");</div><div>const timedEl = $("timed");</div><div>const soundsEl = $("sounds");</div><div>const bigUIEl = $("bigUI");</div><div><br></div><div>// Buttons</div><div>const startBtn = $("startBtn");</div><div>const submitBtn = $("submitBtn");</div><div>const quitBtn = $("quitBtn");</div><div>const restartBtn = $("restartBtn");</div><div>const reviewMissedBtn = $("reviewMissedBtn");</div><div><br></div><div>const teacherBtn = $("teacherBtn");</div><div>const backBtn = $("backBtn");</div><div>const clearHistoryBtn = $("clearHistoryBtn");</div><div><br></div><div>// Game display</div><div>const aEl = $("a");</div><div>const bEl = $("b");</div><div>const answerEl = $("answer");</div><div>const feedbackEl = $("feedback");</div><div>const scoreEl = $("score");</div><div>const streakEl = $("streak");</div><div>const progressEl = $("progress");</div><div>const timerBoxEl = $("timerBox");</div><div>const timeLeftEl = $("timeLeft");</div><div>const starsEl = $("stars");</div><div>const badgeEl = $("badge");</div><div><br></div><div>// Results display</div><div>const finalScoreEl = $("finalScore");</div><div>const accuracyEl = $("accuracy");</div><div>const finalStarsEl = $("finalStars");</div><div>const finalBadgeEl = $("finalBadge");</div><div>const missedBoxEl = $("missedBox");</div><div>const missedListEl = $("missedList");</div><div><br></div><div>// Teacher dashboard</div><div>const filterNameEl = $("filterName");</div><div>const filterCountEl = $("filterCount");</div><div>const summaryEl = $("summary");</div><div>const historyTableBody = $("historyTable").querySelector("tbody");</div><div>const topMissedEl = $("topMissed");</div><div><br></div><div>// Keypad</div><div>const keypadEl = $("keypad");</div><div><br></div><div>// Storage keys</div><div>const HISTORY_KEY = "ttt_history_v1";</div><div>const MISSED_KEY = "ttt_missed_counts_v1";</div><div><br></div><div>let state = null;</div><div>let timerId = null;</div><div><br></div><div>// ---------- helpers ----------</div><div>function show(el) { el.classList.remove("hidden"); }</div><div>function hide(el) { el.classList.add("hidden"); }</div><div>function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }</div><div>function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }</div><div>function nowISO() { return new Date().toISOString(); }</div><div>function niceDate(iso) {</div><div>&nbsp; try { return new Date(iso).toLocaleString(); } catch { return iso; }</div><div>}</div><div><br></div><div>function loadJSON(key, fallback) {</div><div>&nbsp; try {</div><div>&nbsp; &nbsp; const raw = localStorage.getItem(key);</div><div>&nbsp; &nbsp; if (!raw) return fallback;</div><div>&nbsp; &nbsp; return JSON.parse(raw);</div><div>&nbsp; } catch {</div><div>&nbsp; &nbsp; return fallback;</div><div>&nbsp; }</div><div>}</div><div>function saveJSON(key, value) {</div><div>&nbsp; localStorage.setItem(key, JSON.stringify(value));</div><div>}</div><div><br></div><div>// ---------- sounds (Web Audio API, no files needed) ----------</div><div>let audioCtx = null;</div><div>function beep(type) {</div><div>&nbsp; if (!soundsEl.checked) return;</div><div>&nbsp; try {</div><div>&nbsp; &nbsp; if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();</div><div>&nbsp; &nbsp; const ctx = audioCtx;</div><div><br></div><div>&nbsp; &nbsp; const o = ctx.createOscillator();</div><div>&nbsp; &nbsp; const g = ctx.createGain();</div><div>&nbsp; &nbsp; o.connect(g);</div><div>&nbsp; &nbsp; g.connect(ctx.destination);</div><div><br></div><div>&nbsp; &nbsp; let freq = 440, dur = 0.12;</div><div>&nbsp; &nbsp; if (type === "good") { freq = 880; dur = 0.10; }</div><div>&nbsp; &nbsp; if (type === "bad") &nbsp;{ freq = 220; dur = 0.14; }</div><div>&nbsp; &nbsp; if (type === "end") &nbsp;{ freq = 660; dur = 0.18; }</div><div><br></div><div>&nbsp; &nbsp; o.frequency.value = freq;</div><div>&nbsp; &nbsp; o.type = "sine";</div><div><br></div><div>&nbsp; &nbsp; const t0 = ctx.currentTime;</div><div>&nbsp; &nbsp; g.gain.setValueAtTime(0.0001, t0);</div><div>&nbsp; &nbsp; g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.01);</div><div>&nbsp; &nbsp; g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);</div><div><br></div><div>&nbsp; &nbsp; o.start(t0);</div><div>&nbsp; &nbsp; o.stop(t0 + dur);</div><div>&nbsp; } catch {</div><div>&nbsp; &nbsp; // ignore sound errors</div><div>&nbsp; }</div><div>}</div><div><br></div><div>// ---------- level logic ----------</div><div>function levelSettings(level) {</div><div>&nbsp; // Factor range for b, and time limits</div><div>&nbsp; // bRange grows with difficulty; also allows 0 early for confidence.</div><div>&nbsp; // You can tweak these easily.</div><div>&nbsp; const L = clamp(level, 1, 5);</div><div>&nbsp; const bMin = (L &lt;= 2) ? 0 : 1;</div><div>&nbsp; const bMax = [5, 8, 10, 12, 12][L - 1];</div><div>&nbsp; const time = [90, 75, 60, 60, 45][L - 1];</div><div>&nbsp; return { bMin, bMax, timeLimit: time };</div><div>}</div><div><br></div><div>// ---------- rewards ----------</div><div>function calcStars({ accuracy, bestStreak, timed, level }) {</div><div>&nbsp; // simple + motivating:</div><div>&nbsp; // - base from accuracy</div><div>&nbsp; // - bonus for streaks</div><div>&nbsp; // - bonus for timed</div><div>&nbsp; // - bonus for higher levels</div><div>&nbsp; let stars = 0;</div><div>&nbsp; if (accuracy &gt;= 60) stars += 1;</div><div>&nbsp; if (accuracy &gt;= 75) stars += 1;</div><div>&nbsp; if (accuracy &gt;= 90) stars += 1;</div><div>&nbsp; if (bestStreak &gt;= 5) stars += 1;</div><div>&nbsp; if (bestStreak &gt;= 10) stars += 1;</div><div>&nbsp; if (timed) stars += 1;</div><div>&nbsp; if (level &gt;= 4) stars += 1;</div><div>&nbsp; return clamp(stars, 0, 7);</div><div>}</div><div><br></div><div>function calcBadge({ accuracy, bestStreak, timed, level, missedCount }) {</div><div>&nbsp; if (accuracy === 100 &amp;&amp; timed &amp;&amp; level &gt;= 4) return "Lightning Legend ⚡";</div><div>&nbsp; if (accuracy === 100) return "Perfect Round 💯";</div><div>&nbsp; if (bestStreak &gt;= 12) return "Streak Star ⭐";</div><div>&nbsp; if (accuracy &gt;= 90) return "Accuracy Ace 🎯";</div><div>&nbsp; if (missedCount === 0 &amp;&amp; accuracy &gt;= 85) return "Clean Run 🧼";</div><div>&nbsp; if (accuracy &gt;= 75) return "Solid Work 👍";</div><div>&nbsp; return "Keep Going 💪";</div><div>}</div><div><br></div><div>// ---------- question generation ----------</div><div>function makeFactKey(a, b) { return `${a}x${b}`; }</div><div><br></div><div>function nextQuestion() {</div><div>&nbsp; const { bMin, bMax } = state.levelCfg;</div><div><br></div><div>&nbsp; if (state.mode === "missed") {</div><div>&nbsp; &nbsp; // pull from missed pool; if empty, fallback to mixed</div><div>&nbsp; &nbsp; if (state.missedPool.length === 0) {</div><div>&nbsp; &nbsp; &nbsp; state.mode = "mixed";</div><div>&nbsp; &nbsp; &nbsp; state.modeWasAutoFallback = true;</div><div>&nbsp; &nbsp; } else {</div><div>&nbsp; &nbsp; &nbsp; // weighted choice: pick items with higher missCount more often</div><div>&nbsp; &nbsp; &nbsp; const totalWeight = state.missedPool.reduce((s, x) =&gt; s + x.weight, 0);</div><div>&nbsp; &nbsp; &nbsp; let r = Math.random() * totalWeight;</div><div>&nbsp; &nbsp; &nbsp; for (const item of state.missedPool) {</div><div>&nbsp; &nbsp; &nbsp; &nbsp; r -= item.weight;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; if (r &lt;= 0) {</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; state.current = { a: item.a, b: item.b, correct: item.a * item.b, key: makeFactKey(item.a, item.b) };</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; aEl.textContent = item.a;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; bEl.textContent = item.b;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; answerEl.value = "";</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; answerEl.focus();</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return;</div><div>&nbsp; &nbsp; &nbsp; &nbsp; }</div><div>&nbsp; &nbsp; &nbsp; }</div><div>&nbsp; &nbsp; }</div><div>&nbsp; }</div><div><br></div><div>&nbsp; let a, b;</div><div>&nbsp; if (state.mode === "focus") {</div><div>&nbsp; &nbsp; a = clamp(parseInt(state.focusTable, 10) || 7, 1, 12);</div><div>&nbsp; &nbsp; b = randInt(bMin, bMax);</div><div>&nbsp; } else {</div><div>&nbsp; &nbsp; // mixed</div><div>&nbsp; &nbsp; a = randInt(state.minTable, state.maxTable);</div><div>&nbsp; &nbsp; b = randInt(bMin, bMax);</div><div>&nbsp; }</div><div><br></div><div>&nbsp; state.current = { a, b, correct: a * b, key: makeFactKey(a, b) };</div><div>&nbsp; aEl.textContent = a;</div><div>&nbsp; bEl.textContent = b;</div><div>&nbsp; answerEl.value = "";</div><div>&nbsp; answerEl.focus();</div><div>}</div><div><br></div><div>// ---------- missed tracking ----------</div><div>function bumpMissedCount(key) {</div><div>&nbsp; const counts = loadJSON(MISSED_KEY, {});</div><div>&nbsp; counts[key] = (counts[key] || 0) + 1;</div><div>&nbsp; saveJSON(MISSED_KEY, counts);</div><div>}</div><div><br></div><div>function buildMissedPool() {</div><div>&nbsp; const counts = loadJSON(MISSED_KEY, {});</div><div>&nbsp; // only include facts that match current table constraints</div><div>&nbsp; const pool = [];</div><div>&nbsp; const { bMin, bMax } = state.levelCfg;</div><div><br></div><div>&nbsp; const within = (a, b) =&gt; {</div><div>&nbsp; &nbsp; if (b &lt; bMin || b &gt; bMax) return false;</div><div>&nbsp; &nbsp; if (state.mode === "focus") return a === state.focusTable;</div><div>&nbsp; &nbsp; // in review mode we still honor the table-range from setup unless user is focus</div><div>&nbsp; &nbsp; return a &gt;= state.minTable &amp;&amp; a &lt;= state.maxTable;</div><div>&nbsp; };</div><div><br></div><div>&nbsp; for (const [key, c] of Object.entries(counts)) {</div><div>&nbsp; &nbsp; const [aStr, bStr] = key.split("x");</div><div>&nbsp; &nbsp; const a = Number(aStr), b = Number(bStr);</div><div>&nbsp; &nbsp; if (!Number.isFinite(a) || !Number.isFinite(b)) continue;</div><div>&nbsp; &nbsp; if (!within(a, b)) continue;</div><div>&nbsp; &nbsp; pool.push({ a, b, weight: Math.min(1 + c, 10) }); // cap weight</div><div>&nbsp; }</div><div>&nbsp; return pool;</div><div>}</div><div><br></div><div>// ---------- UI helpers ----------</div><div>function applyBigUI() {</div><div>&nbsp; document.body.style.fontSize = bigUIEl.checked ? "18px" : "16px";</div><div>&nbsp; answerEl.style.fontSize = bigUIEl.checked ? "30px" : "26px";</div><div>}</div><div><br></div><div>function setBadgeAndStarsLive() {</div><div>&nbsp; // updated at end of each answer</div><div>&nbsp; starsEl.textContent = String(state.stars);</div><div>&nbsp; badgeEl.textContent = state.badge || "—";</div><div>}</div><div><br></div><div>// ---------- game lifecycle ----------</div><div>function startGame(opts = {}) {</div><div>&nbsp; applyBigUI();</div><div><br></div><div>&nbsp; const kidName = (kidNameEl.value || "").trim();</div><div>&nbsp; const level = clamp(parseInt(levelEl.value, 10) || 4, 1, 5);</div><div>&nbsp; const levelCfg = levelSettings(level);</div><div><br></div><div>&nbsp; const mode = modeEl.value; // mixed | focus | missed</div><div>&nbsp; const total = clamp(parseInt(numQuestionsEl.value, 10) || 20, 5, 100);</div><div><br></div><div>&nbsp; const minT = clamp(parseInt(minTableEl.value || "2", 10), 1, 12);</div><div>&nbsp; const maxT = clamp(parseInt(maxTableEl.value || "12", 10), 1, 12);</div><div>&nbsp; const minTable = Math.min(minT, maxT);</div><div>&nbsp; const maxTable = Math.max(minT, maxT);</div><div><br></div><div>&nbsp; const focusTable = clamp(parseInt(focusTableEl.value || "7", 10), 1, 12);</div><div><br></div><div>&nbsp; const timed = !!timedEl.checked;</div><div>&nbsp; const timeLimit = timed ? levelCfg.timeLimit : null;</div><div><br></div><div>&nbsp; // If starting review from results button, we can force missed mode</div><div>&nbsp; const forcedMode = opts.forceMode || mode;</div><div><br></div><div>&nbsp; state = {</div><div>&nbsp; &nbsp; kidName,</div><div>&nbsp; &nbsp; level,</div><div>&nbsp; &nbsp; levelCfg,</div><div>&nbsp; &nbsp; mode: forcedMode,</div><div>&nbsp; &nbsp; modeWasAutoFallback: false,</div><div>&nbsp; &nbsp; total,</div><div>&nbsp; &nbsp; index: 0,</div><div>&nbsp; &nbsp; score: 0,</div><div>&nbsp; &nbsp; correctCount: 0,</div><div>&nbsp; &nbsp; streak: 0,</div><div>&nbsp; &nbsp; bestStreak: 0,</div><div>&nbsp; &nbsp; missedThisSession: [],</div><div>&nbsp; &nbsp; minTable,</div><div>&nbsp; &nbsp; maxTable,</div><div>&nbsp; &nbsp; focusTable,</div><div>&nbsp; &nbsp; timed,</div><div>&nbsp; &nbsp; timeLeft: timeLimit,</div><div>&nbsp; &nbsp; stars: 0,</div><div>&nbsp; &nbsp; badge: "—",</div><div>&nbsp; &nbsp; current: null,</div><div>&nbsp; &nbsp; missedPool: []</div><div>&nbsp; };</div><div><br></div><div>&nbsp; // Build missed pool if needed</div><div>&nbsp; if (state.mode === "missed") {</div><div>&nbsp; &nbsp; state.missedPool = buildMissedPool();</div><div>&nbsp; }</div><div><br></div><div>&nbsp; // UI resets</div><div>&nbsp; scoreEl.textContent = "0";</div><div>&nbsp; streakEl.textContent = "0";</div><div>&nbsp; progressEl.textContent = `0/${state.total}`;</div><div>&nbsp; feedbackEl.textContent = "";</div><div>&nbsp; starsEl.textContent = "0";</div><div>&nbsp; badgeEl.textContent = "—";</div><div><br></div><div>&nbsp; hide(setupEl);</div><div>&nbsp; hide(resultsEl);</div><div>&nbsp; hide(teacherEl);</div><div>&nbsp; show(gameEl);</div><div><br></div><div>&nbsp; if (state.timed) {</div><div>&nbsp; &nbsp; show(timerBoxEl);</div><div>&nbsp; &nbsp; timeLeftEl.textContent = String(state.timeLeft);</div><div>&nbsp; &nbsp; timerId = setInterval(() =&gt; {</div><div>&nbsp; &nbsp; &nbsp; if (!state) return;</div><div>&nbsp; &nbsp; &nbsp; state.timeLeft -= 1;</div><div>&nbsp; &nbsp; &nbsp; timeLeftEl.textContent = String(state.timeLeft);</div><div>&nbsp; &nbsp; &nbsp; if (state.timeLeft &lt;= 0) endGame();</div><div>&nbsp; &nbsp; }, 1000);</div><div>&nbsp; } else {</div><div>&nbsp; &nbsp; hide(timerBoxEl);</div><div>&nbsp; }</div><div><br></div><div>&nbsp; nextQuestion();</div><div>}</div><div><br></div><div>function submitAnswer() {</div><div>&nbsp; if (!state) return;</div><div>&nbsp; const raw = answerEl.value.trim();</div><div>&nbsp; if (raw === "") return;</div><div><br></div><div>&nbsp; const user = Number(raw);</div><div>&nbsp; const { a, b, correct, key } = state.current;</div><div><br></div><div>&nbsp; state.index += 1;</div><div>&nbsp; const isCorrect = user === correct;</div><div><br></div><div>&nbsp; if (isCorrect) {</div><div>&nbsp; &nbsp; state.score += 1;</div><div>&nbsp; &nbsp; state.correctCount += 1;</div><div>&nbsp; &nbsp; state.streak += 1;</div><div>&nbsp; &nbsp; state.bestStreak = Math.max(state.bestStreak, state.streak);</div><div>&nbsp; &nbsp; feedbackEl.textContent = "✅ Correct!";</div><div>&nbsp; &nbsp; beep("good");</div><div>&nbsp; } else {</div><div>&nbsp; &nbsp; state.streak = 0;</div><div>&nbsp; &nbsp; state.missedThisSession.push({ a, b, correct, user });</div><div>&nbsp; &nbsp; feedbackEl.textContent = `❌ Not quite. ${a} × ${b} = ${correct}`;</div><div>&nbsp; &nbsp; bumpMissedCount(key);</div><div>&nbsp; &nbsp; beep("bad");</div><div>&nbsp; }</div><div><br></div><div>&nbsp; // live rewards estimate</div><div>&nbsp; const accuracy = Math.round((state.correctCount / state.index) * 100);</div><div>&nbsp; state.stars = calcStars({</div><div>&nbsp; &nbsp; accuracy,</div><div>&nbsp; &nbsp; bestStreak: state.bestStreak,</div><div>&nbsp; &nbsp; timed: state.timed,</div><div>&nbsp; &nbsp; level: state.level</div><div>&nbsp; });</div><div>&nbsp; state.badge = calcBadge({</div><div>&nbsp; &nbsp; accuracy,</div><div>&nbsp; &nbsp; bestStreak: state.bestStreak,</div><div>&nbsp; &nbsp; timed: state.timed,</div><div>&nbsp; &nbsp; level: state.level,</div><div>&nbsp; &nbsp; missedCount: state.missedThisSession.length</div><div>&nbsp; });</div><div>&nbsp; setBadgeAndStarsLive();</div><div><br></div><div>&nbsp; scoreEl.textContent = String(state.score);</div><div>&nbsp; streakEl.textContent = String(state.streak);</div><div>&nbsp; progressEl.textContent = `${state.index}/${state.total}`;</div><div><br></div><div>&nbsp; if (state.index &gt;= state.total) {</div><div>&nbsp; &nbsp; endGame();</div><div>&nbsp; } else {</div><div>&nbsp; &nbsp; nextQuestion();</div><div>&nbsp; }</div><div>}</div><div><br></div><div>function endGame() {</div><div>&nbsp; if (!state) return;</div><div><br></div><div>&nbsp; if (timerId) { clearInterval(timerId); timerId = null; }</div><div><br></div><div>&nbsp; hide(gameEl);</div><div>&nbsp; show(resultsEl);</div><div><br></div><div>&nbsp; const accuracy = Math.round((state.correctCount / state.total) * 100);</div><div>&nbsp; const stars = calcStars({</div><div>&nbsp; &nbsp; accuracy,</div><div>&nbsp; &nbsp; bestStreak: state.bestStreak,</div><div>&nbsp; &nbsp; timed: state.timed,</div><div>&nbsp; &nbsp; level: state.level</div><div>&nbsp; });</div><div>&nbsp; const badge = calcBadge({</div><div>&nbsp; &nbsp; accuracy,</div><div>&nbsp; &nbsp; bestStreak: state.bestStreak,</div><div>&nbsp; &nbsp; timed: state.timed,</div><div>&nbsp; &nbsp; level: state.level,</div><div>&nbsp; &nbsp; missedCount: state.missedThisSession.length</div><div>&nbsp; });</div><div><br></div><div>&nbsp; finalScoreEl.textContent = `${state.score} / ${state.total}`;</div><div>&nbsp; accuracyEl.textContent = String(accuracy);</div><div>&nbsp; finalStarsEl.textContent = String(stars);</div><div>&nbsp; finalBadgeEl.textContent = badge;</div><div><br></div><div>&nbsp; // Missed list</div><div>&nbsp; missedListEl.innerHTML = "";</div><div>&nbsp; if (state.missedThisSession.length &gt; 0) {</div><div>&nbsp; &nbsp; show(missedBoxEl);</div><div>&nbsp; &nbsp; for (const m of state.missedThisSession) {</div><div>&nbsp; &nbsp; &nbsp; const li = document.createElement("li");</div><div>&nbsp; &nbsp; &nbsp; li.textContent = `${m.a} × ${m.b} = ${m.correct} (you said ${m.user})`;</div><div>&nbsp; &nbsp; &nbsp; missedListEl.appendChild(li);</div><div>&nbsp; &nbsp; }</div><div>&nbsp; } else {</div><div>&nbsp; &nbsp; hide(missedBoxEl);</div><div>&nbsp; }</div><div><br></div><div>&nbsp; // Save session to history</div><div>&nbsp; const history = loadJSON(HISTORY_KEY, []);</div><div>&nbsp; history.unshift({</div><div>&nbsp; &nbsp; date: nowISO(),</div><div>&nbsp; &nbsp; kidName: state.kidName || "",</div><div>&nbsp; &nbsp; mode: state.modeWasAutoFallback ? "review→mixed" : state.mode,</div><div>&nbsp; &nbsp; level: state.level,</div><div>&nbsp; &nbsp; timed: state.timed,</div><div>&nbsp; &nbsp; total: state.total,</div><div>&nbsp; &nbsp; score: state.score,</div><div>&nbsp; &nbsp; accuracy,</div><div>&nbsp; &nbsp; stars,</div><div>&nbsp; &nbsp; badge</div><div>&nbsp; });</div><div>&nbsp; saveJSON(HISTORY_KEY, history.slice(0, 500)); // cap</div><div><br></div><div>&nbsp; beep("end");</div><div><br></div><div>&nbsp; // keep a tiny “last setup” for review button</div><div>&nbsp; window.__lastSetup = {</div><div>&nbsp; &nbsp; kidName: state.kidName,</div><div>&nbsp; &nbsp; level: state.level,</div><div>&nbsp; &nbsp; numQuestions: state.total,</div><div>&nbsp; &nbsp; minTable: state.minTable,</div><div>&nbsp; &nbsp; maxTable: state.maxTable,</div><div>&nbsp; &nbsp; focusTable: state.focusTable,</div><div>&nbsp; &nbsp; timed: state.timed</div><div>&nbsp; };</div><div><br></div><div>&nbsp; // clear state so Enter doesn’t keep answering</div><div>&nbsp; state = null;</div><div>}</div><div><br></div><div>// ---------- teacher dashboard ----------</div><div>function renderTeacherDashboard() {</div><div>&nbsp; const history = loadJSON(HISTORY_KEY, []);</div><div>&nbsp; const counts = loadJSON(MISSED_KEY, {});</div><div>&nbsp; const filterName = (filterNameEl.value || "").trim().toLowerCase();</div><div>&nbsp; const maxCount = parseInt(filterCountEl.value, 10) || 25;</div><div><br></div><div>&nbsp; let rows = history;</div><div>&nbsp; if (filterName) {</div><div>&nbsp; &nbsp; rows = rows.filter(r =&gt; (r.kidName || "").toLowerCase().includes(filterName));</div><div>&nbsp; }</div><div>&nbsp; rows = rows.slice(0, maxCount);</div><div><br></div><div>&nbsp; // summary</div><div>&nbsp; if (rows.length === 0) {</div><div>&nbsp; &nbsp; summaryEl.textContent = "No sessions match your filter yet.";</div><div>&nbsp; } else {</div><div>&nbsp; &nbsp; const avgAcc = Math.round(rows.reduce((s, r) =&gt; s + (r.accuracy || 0), 0) / rows.length);</div><div>&nbsp; &nbsp; const bestAcc = Math.max(...rows.map(r =&gt; r.accuracy || 0));</div><div>&nbsp; &nbsp; const totalSessions = rows.length;</div><div>&nbsp; &nbsp; const totalStars = rows.reduce((s, r) =&gt; s + (r.stars || 0), 0);</div><div>&nbsp; &nbsp; summaryEl.innerHTML = `</div><div>&nbsp; &nbsp; &nbsp; &lt;strong&gt;Sessions:&lt;/strong&gt; ${totalSessions} &amp;nbsp; | &amp;nbsp;</div><div>&nbsp; &nbsp; &nbsp; &lt;strong&gt;Avg accuracy:&lt;/strong&gt; ${avgAcc}% &amp;nbsp; | &amp;nbsp;</div><div>&nbsp; &nbsp; &nbsp; &lt;strong&gt;Best accuracy:&lt;/strong&gt; ${bestAcc}% &amp;nbsp; | &amp;nbsp;</div><div>&nbsp; &nbsp; &nbsp; &lt;strong&gt;Total stars:&lt;/strong&gt; ${totalStars} ⭐</div><div>&nbsp; &nbsp; `;</div><div>&nbsp; }</div><div><br></div><div>&nbsp; // table</div><div>&nbsp; historyTableBody.innerHTML = "";</div><div>&nbsp; for (const r of rows) {</div><div>&nbsp; &nbsp; const tr = document.createElement("tr");</div><div>&nbsp; &nbsp; tr.innerHTML = `</div><div>&nbsp; &nbsp; &nbsp; &lt;td&gt;${niceDate(r.date)}&lt;/td&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;td&gt;${escapeHTML(r.kidName || "")}&lt;/td&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;td&gt;${escapeHTML(r.mode || "")}&lt;/td&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;td&gt;${r.level}&lt;/td&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;td&gt;${r.timed ? "Yes" : "No"}&lt;/td&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;td&gt;${r.score}/${r.total}&lt;/td&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;td&gt;${r.accuracy}%&lt;/td&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;td&gt;${r.stars}&lt;/td&gt;</div><div>&nbsp; &nbsp; &nbsp; &lt;td&gt;${escapeHTML(r.badge || "")}&lt;/td&gt;</div><div>&nbsp; &nbsp; `;</div><div>&nbsp; &nbsp; historyTableBody.appendChild(tr);</div><div>&nbsp; }</div><div><br></div><div>&nbsp; // Top missed facts</div><div>&nbsp; const top = Object.entries(counts)</div><div>&nbsp; &nbsp; .sort((a, b) =&gt; b[1] - a[1])</div><div>&nbsp; &nbsp; .slice(0, 12);</div><div><br></div><div>&nbsp; topMissedEl.innerHTML = "";</div><div>&nbsp; if (top.length === 0) {</div><div>&nbsp; &nbsp; const li = document.createElement("li");</div><div>&nbsp; &nbsp; li.textContent = "No missed facts recorded yet.";</div><div>&nbsp; &nbsp; topMissedEl.appendChild(li);</div><div>&nbsp; } else {</div><div>&nbsp; &nbsp; for (const [key, c] of top) {</div><div>&nbsp; &nbsp; &nbsp; const li = document.createElement("li");</div><div>&nbsp; &nbsp; &nbsp; li.textContent = `${key.replace("x", " × ")} &nbsp;— missed ${c} time(s)`;</div><div>&nbsp; &nbsp; &nbsp; topMissedEl.appendChild(li);</div><div>&nbsp; &nbsp; }</div><div>&nbsp; }</div><div>}</div><div><br></div><div>function escapeHTML(s) {</div><div>&nbsp; return String(s)</div><div>&nbsp; &nbsp; .replaceAll("&amp;", "&amp;amp;")</div><div>&nbsp; &nbsp; .replaceAll("&lt;", "&amp;lt;")</div><div>&nbsp; &nbsp; .replaceAll("&gt;", "&amp;gt;")</div><div>&nbsp; &nbsp; .replaceAll('"', "&amp;quot;")</div><div>&nbsp; &nbsp; .replaceAll("'", "&amp;#039;");</div><div>}</div><div><br></div><div>// ---------- event wiring ----------</div><div>modeEl.addEventListener("change", () =&gt; {</div><div>&nbsp; const m = modeEl.value;</div><div>&nbsp; if (m === "focus") show(focusWrapEl);</div><div>&nbsp; else hide(focusWrapEl);</div><div>});</div><div><br></div><div>bigUIEl.addEventListener("change", applyBigUI);</div><div><br></div><div>// Keypad clicks</div><div>keypadEl.addEventListener("click", (e) =&gt; {</div><div>&nbsp; const btn = e.target.closest("button");</div><div>&nbsp; if (!btn) return;</div><div>&nbsp; const k = btn.getAttribute("data-k");</div><div>&nbsp; if (!k) return;</div><div><br></div><div>&nbsp; if (k === "bk") {</div><div>&nbsp; &nbsp; answerEl.value = answerEl.value.slice(0, -1);</div><div>&nbsp; &nbsp; answerEl.focus();</div><div>&nbsp; &nbsp; return;</div><div>&nbsp; }</div><div>&nbsp; if (k === "ok") {</div><div>&nbsp; &nbsp; submitAnswer();</div><div>&nbsp; &nbsp; return;</div><div>&nbsp; }</div><div>&nbsp; answerEl.value += k;</div><div>&nbsp; answerEl.focus();</div><div>});</div><div><br></div><div>startBtn.addEventListener("click", () =&gt; startGame());</div><div><br></div><div>submitBtn.addEventListener("click", submitAnswer);</div><div>quitBtn.addEventListener("click", endGame);</div><div><br></div><div>restartBtn.addEventListener("click", () =&gt; {</div><div>&nbsp; hide(resultsEl);</div><div>&nbsp; show(setupEl);</div><div>});</div><div><br></div><div>reviewMissedBtn.addEventListener("click", () =&gt; {</div><div>&nbsp; // keep last settings but force missed mode</div><div>&nbsp; if (window.__lastSetup) {</div><div>&nbsp; &nbsp; kidNameEl.value = window.__lastSetup.kidName || "";</div><div>&nbsp; &nbsp; levelEl.value = String(window.__lastSetup.level || 4);</div><div>&nbsp; &nbsp; numQuestionsEl.value = String(window.__lastSetup.numQuestions || 20);</div><div>&nbsp; &nbsp; minTableEl.value = String(window.__lastSetup.minTable || 2);</div><div>&nbsp; &nbsp; maxTableEl.value = String(window.__lastSetup.maxTable || 12);</div><div>&nbsp; &nbsp; focusTableEl.value = String(window.__lastSetup.focusTable || 7);</div><div>&nbsp; &nbsp; timedEl.checked = !!window.__lastSetup.timed;</div><div>&nbsp; }</div><div><br></div><div>&nbsp; modeEl.value = "missed";</div><div>&nbsp; hide(resultsEl);</div><div>&nbsp; startGame({ forceMode: "missed" });</div><div>});</div><div><br></div><div>answerEl.addEventListener("keydown", (e) =&gt; {</div><div>&nbsp; if (e.key === "Enter") submitAnswer();</div><div>});</div><div><br></div><div>// Parent/Teacher</div><div>teacherBtn.addEventListener("click", () =&gt; {</div><div>&nbsp; hide(setupEl);</div><div>&nbsp; hide(gameEl);</div><div>&nbsp; hide(resultsEl);</div><div>&nbsp; show(teacherEl);</div><div>&nbsp; renderTeacherDashboard();</div><div>});</div><div><br></div><div>backBtn.addEventListener("click", () =&gt; {</div><div>&nbsp; hide(teacherEl);</div><div>&nbsp; show(setupEl);</div><div>});</div><div><br></div><div>filterNameEl.addEventListener("input", renderTeacherDashboard);</div><div>filterCountEl.addEventListener("change", renderTeacherDashboard);</div><div><br></div><div>clearHistoryBtn.addEventListener("click", () =&gt; {</div><div>&nbsp; localStorage.removeItem(HISTORY_KEY);</div><div>&nbsp; localStorage.removeItem(MISSED_KEY);</div><div>&nbsp; renderTeacherDashboard();</div><div>});</div><div><br></div><div>// initial state</div><div>applyBigUI();</div><div>hide(focusWrapEl);</div><div><br></div></body></html>
+const $ = (id) => document.getElementById(id);
+
+// Sections
+const setupEl = $("setup");
+const gameEl = $("game");
+const resultsEl = $("results");
+const teacherEl = $("teacher");
+
+// Inputs
+const kidNameEl = $("kidName");
+const levelEl = $("level");
+const modeEl = $("mode");
+const numQuestionsEl = $("numQuestions");
+const focusTableEl = $("focusTable");
+const focusWrapEl = $("focusWrap");
+const minTableEl = $("minTable");
+const maxTableEl = $("maxTable");
+const timedEl = $("timed");
+const soundsEl = $("sounds");
+const bigUIEl = $("bigUI");
+
+// Buttons
+const startBtn = $("startBtn");
+const submitBtn = $("submitBtn");
+const quitBtn = $("quitBtn");
+const restartBtn = $("restartBtn");
+const reviewMissedBtn = $("reviewMissedBtn");
+
+const teacherBtn = $("teacherBtn");
+const backBtn = $("backBtn");
+const clearHistoryBtn = $("clearHistoryBtn");
+
+// Game display
+const aEl = $("a");
+const bEl = $("b");
+const answerEl = $("answer");
+const feedbackEl = $("feedback");
+const scoreEl = $("score");
+const streakEl = $("streak");
+const progressEl = $("progress");
+const timerBoxEl = $("timerBox");
+const timeLeftEl = $("timeLeft");
+const starsEl = $("stars");
+const badgeEl = $("badge");
+
+// Results display
+const finalScoreEl = $("finalScore");
+const accuracyEl = $("accuracy");
+const finalStarsEl = $("finalStars");
+const finalBadgeEl = $("finalBadge");
+const missedBoxEl = $("missedBox");
+const missedListEl = $("missedList");
+
+// Teacher dashboard
+const filterNameEl = $("filterName");
+const filterCountEl = $("filterCount");
+const summaryEl = $("summary");
+const historyTableBody = $("historyTable").querySelector("tbody");
+const topMissedEl = $("topMissed");
+
+// Keypad
+const keypadEl = $("keypad");
+
+// Storage keys
+const HISTORY_KEY = "ttt_history_v1";
+const MISSED_KEY = "ttt_missed_counts_v1";
+
+let state = null;
+let timerId = null;
+
+// ---------- helpers ----------
+function show(el) { el.classList.remove("hidden"); }
+function hide(el) { el.classList.add("hidden"); }
+function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function nowISO() { return new Date().toISOString(); }
+function niceDate(iso) {
+  try { return new Date(iso).toLocaleString(); } catch { return iso; }
+}
+
+function loadJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+function saveJSON(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+// ---------- sounds (Web Audio API, no files needed) ----------
+let audioCtx = null;
+function beep(type) {
+  if (!soundsEl.checked) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g);
+    g.connect(ctx.destination);
+
+    let freq = 440, dur = 0.12;
+    if (type === "good") { freq = 880; dur = 0.10; }
+    if (type === "bad")  { freq = 220; dur = 0.14; }
+    if (type === "end")  { freq = 660; dur = 0.18; }
+
+    o.frequency.value = freq;
+    o.type = "sine";
+
+    const t0 = ctx.currentTime;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+    o.start(t0);
+    o.stop(t0 + dur);
+  } catch {
+    // ignore sound errors
+  }
+}
+
+// ---------- level logic ----------
+function levelSettings(level) {
+  // Factor range for b, and time limits
+  // bRange grows with difficulty; also allows 0 early for confidence.
+  // You can tweak these easily.
+  const L = clamp(level, 1, 5);
+  const bMin = (L <= 2) ? 0 : 1;
+  const bMax = [5, 8, 10, 12, 12][L - 1];
+  const time = [90, 75, 60, 60, 45][L - 1];
+  return { bMin, bMax, timeLimit: time };
+}
+
+// ---------- rewards ----------
+function calcStars({ accuracy, bestStreak, timed, level }) {
+  // simple + motivating:
+  // - base from accuracy
+  // - bonus for streaks
+  // - bonus for timed
+  // - bonus for higher levels
+  let stars = 0;
+  if (accuracy >= 60) stars += 1;
+  if (accuracy >= 75) stars += 1;
+  if (accuracy >= 90) stars += 1;
+  if (bestStreak >= 5) stars += 1;
+  if (bestStreak >= 10) stars += 1;
+  if (timed) stars += 1;
+  if (level >= 4) stars += 1;
+  return clamp(stars, 0, 7);
+}
+
+function calcBadge({ accuracy, bestStreak, timed, level, missedCount }) {
+  if (accuracy === 100 && timed && level >= 4) return "Lightning Legend ⚡";
+  if (accuracy === 100) return "Perfect Round 💯";
+  if (bestStreak >= 12) return "Streak Star ⭐";
+  if (accuracy >= 90) return "Accuracy Ace 🎯";
+  if (missedCount === 0 && accuracy >= 85) return "Clean Run 🧼";
+  if (accuracy >= 75) return "Solid Work 👍";
+  return "Keep Going 💪";
+}
+
+// ---------- question generation ----------
+function makeFactKey(a, b) { return `${a}x${b}`; }
+
+function nextQuestion() {
+  const { bMin, bMax } = state.levelCfg;
+
+  if (state.mode === "missed") {
+    // pull from missed pool; if empty, fallback to mixed
+    if (state.missedPool.length === 0) {
+      state.mode = "mixed";
+      state.modeWasAutoFallback = true;
+    } else {
+      // weighted choice: pick items with higher missCount more often
+      const totalWeight = state.missedPool.reduce((s, x) => s + x.weight, 0);
+      let r = Math.random() * totalWeight;
+      for (const item of state.missedPool) {
+        r -= item.weight;
+        if (r <= 0) {
+          state.current = { a: item.a, b: item.b, correct: item.a * item.b, key: makeFactKey(item.a, item.b) };
+          aEl.textContent = item.a;
+          bEl.textContent = item.b;
+          answerEl.value = "";
+          answerEl.focus();
+          return;
+        }
+      }
+    }
+  }
+
+  let a, b;
+  if (state.mode === "focus") {
+    a = clamp(parseInt(state.focusTable, 10) || 7, 1, 12);
+    b = randInt(bMin, bMax);
+  } else {
+    // mixed
+    a = randInt(state.minTable, state.maxTable);
+    b = randInt(bMin, bMax);
+  }
+
+  state.current = { a, b, correct: a * b, key: makeFactKey(a, b) };
+  aEl.textContent = a;
+  bEl.textContent = b;
+  answerEl.value = "";
+  answerEl.focus();
+}
+
+// ---------- missed tracking ----------
+function bumpMissedCount(key) {
+  const counts = loadJSON(MISSED_KEY, {});
+  counts[key] = (counts[key] || 0) + 1;
+  saveJSON(MISSED_KEY, counts);
+}
+
+function buildMissedPool() {
+  const counts = loadJSON(MISSED_KEY, {});
+  // only include facts that match current table constraints
+  const pool = [];
+  const { bMin, bMax } = state.levelCfg;
+
+  const within = (a, b) => {
+    if (b < bMin || b > bMax) return false;
+    if (state.mode === "focus") return a === state.focusTable;
+    // in review mode we still honor the table-range from setup unless user is focus
+    return a >= state.minTable && a <= state.maxTable;
+  };
+
+  for (const [key, c] of Object.entries(counts)) {
+    const [aStr, bStr] = key.split("x");
+    const a = Number(aStr), b = Number(bStr);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
+    if (!within(a, b)) continue;
+    pool.push({ a, b, weight: Math.min(1 + c, 10) }); // cap weight
+  }
+  return pool;
+}
+
+// ---------- UI helpers ----------
+function applyBigUI() {
+  document.body.style.fontSize = bigUIEl.checked ? "18px" : "16px";
+  answerEl.style.fontSize = bigUIEl.checked ? "30px" : "26px";
+}
+
+function setBadgeAndStarsLive() {
+  // updated at end of each answer
+  starsEl.textContent = String(state.stars);
+  badgeEl.textContent = state.badge || "—";
+}
+
+// ---------- game lifecycle ----------
+function startGame(opts = {}) {
+  applyBigUI();
+
+  const kidName = (kidNameEl.value || "").trim();
+  const level = clamp(parseInt(levelEl.value, 10) || 4, 1, 5);
+  const levelCfg = levelSettings(level);
+
+  const mode = modeEl.value; // mixed | focus | missed
+  const total = clamp(parseInt(numQuestionsEl.value, 10) || 20, 5, 100);
+
+  const minT = clamp(parseInt(minTableEl.value || "2", 10), 1, 12);
+  const maxT = clamp(parseInt(maxTableEl.value || "12", 10), 1, 12);
+  const minTable = Math.min(minT, maxT);
+  const maxTable = Math.max(minT, maxT);
+
+  const focusTable = clamp(parseInt(focusTableEl.value || "7", 10), 1, 12);
+
+  const timed = !!timedEl.checked;
+  const timeLimit = timed ? levelCfg.timeLimit : null;
+
+  // If starting review from results button, we can force missed mode
+  const forcedMode = opts.forceMode || mode;
+
+  state = {
+    kidName,
+    level,
+    levelCfg,
+    mode: forcedMode,
+    modeWasAutoFallback: false,
+    total,
+    index: 0,
+    score: 0,
+    correctCount: 0,
+    streak: 0,
+    bestStreak: 0,
+    missedThisSession: [],
+    minTable,
+    maxTable,
+    focusTable,
+    timed,
+    timeLeft: timeLimit,
+    stars: 0,
+    badge: "—",
+    current: null,
+    missedPool: []
+  };
+
+  // Build missed pool if needed
+  if (state.mode === "missed") {
+    state.missedPool = buildMissedPool();
+  }
+
+  // UI resets
+  scoreEl.textContent = "0";
+  streakEl.textContent = "0";
+  progressEl.textContent = `0/${state.total}`;
+  feedbackEl.textContent = "";
+  starsEl.textContent = "0";
+  badgeEl.textContent = "—";
+
+  hide(setupEl);
+  hide(resultsEl);
+  hide(teacherEl);
+  show(gameEl);
+
+  if (state.timed) {
+    show(timerBoxEl);
+    timeLeftEl.textContent = String(state.timeLeft);
+    timerId = setInterval(() => {
+      if (!state) return;
+      state.timeLeft -= 1;
+      timeLeftEl.textContent = String(state.timeLeft);
+      if (state.timeLeft <= 0) endGame();
+    }, 1000);
+  } else {
+    hide(timerBoxEl);
+  }
+
+  nextQuestion();
+}
+
+function submitAnswer() {
+  if (!state) return;
+  const raw = answerEl.value.trim();
+  if (raw === "") return;
+
+  const user = Number(raw);
+  const { a, b, correct, key } = state.current;
+
+  state.index += 1;
+  const isCorrect = user === correct;
+
+  if (isCorrect) {
+    state.score += 1;
+    state.correctCount += 1;
+    state.streak += 1;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    feedbackEl.textContent = "✅ Correct!";
+    beep("good");
+  } else {
+    state.streak = 0;
+    state.missedThisSession.push({ a, b, correct, user });
+    feedbackEl.textContent = `❌ Not quite. ${a} × ${b} = ${correct}`;
+    bumpMissedCount(key);
+    beep("bad");
+  }
+
+  // live rewards estimate
+  const accuracy = Math.round((state.correctCount / state.index) * 100);
+  state.stars = calcStars({
+    accuracy,
+    bestStreak: state.bestStreak,
+    timed: state.timed,
+    level: state.level
+  });
+  state.badge = calcBadge({
+    accuracy,
+    bestStreak: state.bestStreak,
+    timed: state.timed,
+    level: state.level,
+    missedCount: state.missedThisSession.length
+  });
+  setBadgeAndStarsLive();
+
+  scoreEl.textContent = String(state.score);
+  streakEl.textContent = String(state.streak);
+  progressEl.textContent = `${state.index}/${state.total}`;
+
+  if (state.index >= state.total) {
+    endGame();
+  } else {
+    nextQuestion();
+  }
+}
+
+function endGame() {
+  if (!state) return;
+
+  if (timerId) { clearInterval(timerId); timerId = null; }
+
+  hide(gameEl);
+  show(resultsEl);
+
+  const accuracy = Math.round((state.correctCount / state.total) * 100);
+  const stars = calcStars({
+    accuracy,
+    bestStreak: state.bestStreak,
+    timed: state.timed,
+    level: state.level
+  });
+  const badge = calcBadge({
+    accuracy,
+    bestStreak: state.bestStreak,
+    timed: state.timed,
+    level: state.level,
+    missedCount: state.missedThisSession.length
+  });
+
+  finalScoreEl.textContent = `${state.score} / ${state.total}`;
+  accuracyEl.textContent = String(accuracy);
+  finalStarsEl.textContent = String(stars);
+  finalBadgeEl.textContent = badge;
+
+  // Missed list
+  missedListEl.innerHTML = "";
+  if (state.missedThisSession.length > 0) {
+    show(missedBoxEl);
+    for (const m of state.missedThisSession) {
+      const li = document.createElement("li");
+      li.textContent = `${m.a} × ${m.b} = ${m.correct} (you said ${m.user})`;
+      missedListEl.appendChild(li);
+    }
+  } else {
+    hide(missedBoxEl);
+  }
+
+  // Save session to history
+  const history = loadJSON(HISTORY_KEY, []);
+  history.unshift({
+    date: nowISO(),
+    kidName: state.kidName || "",
+    mode: state.modeWasAutoFallback ? "review→mixed" : state.mode,
+    level: state.level,
+    timed: state.timed,
+    total: state.total,
+    score: state.score,
+    accuracy,
+    stars,
+    badge
+  });
+  saveJSON(HISTORY_KEY, history.slice(0, 500)); // cap
+
+  beep("end");
+
+  // keep a tiny “last setup” for review button
+  window.__lastSetup = {
+    kidName: state.kidName,
+    level: state.level,
+    numQuestions: state.total,
+    minTable: state.minTable,
+    maxTable: state.maxTable,
+    focusTable: state.focusTable,
+    timed: state.timed
+  };
+
+  // clear state so Enter doesn’t keep answering
+  state = null;
+}
+
+// ---------- teacher dashboard ----------
+function renderTeacherDashboard() {
+  const history = loadJSON(HISTORY_KEY, []);
+  const counts = loadJSON(MISSED_KEY, {});
+  const filterName = (filterNameEl.value || "").trim().toLowerCase();
+  const maxCount = parseInt(filterCountEl.value, 10) || 25;
+
+  let rows = history;
+  if (filterName) {
+    rows = rows.filter(r => (r.kidName || "").toLowerCase().includes(filterName));
+  }
+  rows = rows.slice(0, maxCount);
+
+  // summary
+  if (rows.length === 0) {
+    summaryEl.textContent = "No sessions match your filter yet.";
+  } else {
+    const avgAcc = Math.round(rows.reduce((s, r) => s + (r.accuracy || 0), 0) / rows.length);
+    const bestAcc = Math.max(...rows.map(r => r.accuracy || 0));
+    const totalSessions = rows.length;
+    const totalStars = rows.reduce((s, r) => s + (r.stars || 0), 0);
+    summaryEl.innerHTML = `
+      <strong>Sessions:</strong> ${totalSessions} &nbsp; | &nbsp;
+      <strong>Avg accuracy:</strong> ${avgAcc}% &nbsp; | &nbsp;
+      <strong>Best accuracy:</strong> ${bestAcc}% &nbsp; | &nbsp;
+      <strong>Total stars:</strong> ${totalStars} ⭐
+    `;
+  }
+
+  // table
+  historyTableBody.innerHTML = "";
+  for (const r of rows) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${niceDate(r.date)}</td>
+      <td>${escapeHTML(r.kidName || "")}</td>
+      <td>${escapeHTML(r.mode || "")}</td>
+      <td>${r.level}</td>
+      <td>${r.timed ? "Yes" : "No"}</td>
+      <td>${r.score}/${r.total}</td>
+      <td>${r.accuracy}%</td>
+      <td>${r.stars}</td>
+      <td>${escapeHTML(r.badge || "")}</td>
+    `;
+    historyTableBody.appendChild(tr);
+  }
+
+  // Top missed facts
+  const top = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12);
+
+  topMissedEl.innerHTML = "";
+  if (top.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "No missed facts recorded yet.";
+    topMissedEl.appendChild(li);
+  } else {
+    for (const [key, c] of top) {
+      const li = document.createElement("li");
+      li.textContent = `${key.replace("x", " × ")}  — missed ${c} time(s)`;
+      topMissedEl.appendChild(li);
+    }
+  }
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+// ---------- event wiring ----------
+modeEl.addEventListener("change", () => {
+  const m = modeEl.value;
+  if (m === "focus") show(focusWrapEl);
+  else hide(focusWrapEl);
+});
+
+bigUIEl.addEventListener("change", applyBigUI);
+
+// Keypad clicks
+keypadEl.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const k = btn.getAttribute("data-k");
+  if (!k) return;
+
+  if (k === "bk") {
+    answerEl.value = answerEl.value.slice(0, -1);
+    answerEl.focus();
+    return;
+  }
+  if (k === "ok") {
+    submitAnswer();
+    return;
+  }
+  answerEl.value += k;
+  answerEl.focus();
+});
+
+startBtn.addEventListener("click", () => startGame());
+
+submitBtn.addEventListener("click", submitAnswer);
+quitBtn.addEventListener("click", endGame);
+
+restartBtn.addEventListener("click", () => {
+  hide(resultsEl);
+  show(setupEl);
+});
+
+reviewMissedBtn.addEventListener("click", () => {
+  // keep last settings but force missed mode
+  if (window.__lastSetup) {
+    kidNameEl.value = window.__lastSetup.kidName || "";
+    levelEl.value = String(window.__lastSetup.level || 4);
+    numQuestionsEl.value = String(window.__lastSetup.numQuestions || 20);
+    minTableEl.value = String(window.__lastSetup.minTable || 2);
+    maxTableEl.value = String(window.__lastSetup.maxTable || 12);
+    focusTableEl.value = String(window.__lastSetup.focusTable || 7);
+    timedEl.checked = !!window.__lastSetup.timed;
+  }
+
+  modeEl.value = "missed";
+  hide(resultsEl);
+  startGame({ forceMode: "missed" });
+});
+
+answerEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") submitAnswer();
+});
+
+// Parent/Teacher
+teacherBtn.addEventListener("click", () => {
+  hide(setupEl);
+  hide(gameEl);
+  hide(resultsEl);
+  show(teacherEl);
+  renderTeacherDashboard();
+});
+
+backBtn.addEventListener("click", () => {
+  hide(teacherEl);
+  show(setupEl);
+});
+
+filterNameEl.addEventListener("input", renderTeacherDashboard);
+filterCountEl.addEventListener("change", renderTeacherDashboard);
+
+clearHistoryBtn.addEventListener("click", () => {
+  localStorage.removeItem(HISTORY_KEY);
+  localStorage.removeItem(MISSED_KEY);
+  renderTeacherDashboard();
+});
+
+// initial state
+applyBigUI();
+hide(focusWrapEl);
